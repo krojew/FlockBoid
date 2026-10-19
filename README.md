@@ -99,6 +99,14 @@ Distances are in centimetres, speeds in cm/s. Defaults are in brackets.
 - Cull Distance (0, never): the whole flock stops drawing past this camera distance.
 - Niagara System Override (advanced): see Custom Niagara systems.
 
+The advanced section also holds the rendering flags of an engine primitive component. They behave as they do on the component and keep the engine's defaults, except Receives Decals, which is off. Every component that draws the flock gets them, CPU or GPU:
+
+- Shadows, used while Cast Shadows is on: Cast Contact Shadow (on), Cast Far Shadow, Cast Inset Shadow, Self Shadow Only, Cast Shadow as Two Sided, Cast Volumetric Translucent Shadow (all off). Skeletal boids drawn as components are a component each, so with Cast Inset Shadow or Self Shadow Only every boid renders its own shadow map.
+- Lighting: Lighting Channels (channel 0), Affect Dynamic Indirect Lighting (on), Affect Distance Field Lighting (on), Emissive Light Source (off).
+- Visibility: Render in Main Pass (on), Render in Depth Pass (on, used while the main pass is off), Visible in Reflection Captures, Visible in Real Time Sky Captures, Visible in Ray Tracing, Visible in Reflections (all on), Holdout, Visible in Scene Capture Only, Hidden in Scene Capture, Receives Decals (all off).
+- Custom depth: Render Custom Depth (off), Custom Depth Stencil Value (0) and Custom Depth Stencil Write Mask (Default).
+- Translucency Sort Priority (0) and Translucency Sort Distance Offset (0), which only affect translucent materials.
+
 ### Spawn
 
 - Flock Count, Boids Per Flock: see Flock lifecycle.
@@ -213,7 +221,7 @@ There are three ways to draw them:
 - Skeletal mesh, Skeletal Render Mode Instanced (the default): one Instanced Skinned Mesh component for the whole flock, animated by a transform provider asset. This is the mode for large skeletal flocks. The loop plays on Animation Variations tracks (4 by default, at most 16), each started at an evenly spaced point in the sequence, and every boid is assigned one of them. All tracks play halfway between Play Rate At Min Speed and Play Rate At Max Speed, so the animation speed does not follow each boid's speed.
 - Skeletal mesh, Skeletal Render Mode Components: one Skeletal Mesh component per boid, looping Animation from a random start, with its play rate following the boid's speed. Update rate optimisations are on and the pose only ticks while rendered, but the cost per boid is far higher. A component is created for every boid the flock can hold, so keep the counts small.
 
-The render components have no collision, generate no overlaps, do not affect navigation and receive no decals.
+The render components have no collision, generate no overlaps and do not affect navigation. They receive decals only with Receives Decals on.
 
 #### Animation provider for instanced skeletal boids
 
@@ -286,7 +294,7 @@ To add modules or renderers, use a copy of the default system:
 
 `NMS_FlockBoidState` writes position, velocity, mesh orientation, scale, colour, the dynamic material parameter and `Particles.FlockIndex`. Modules placed after it in Particle Update change how a boid is drawn, not where the simulation thinks it is. The Flock Simulation data interface also offers `GetBoidState` (by index) and `GetBoidCount` to your own GPU particle scripts.
 
-The flock component sets every user parameter before the system activates and replaces the system's fixed bounds with the area grown by the containment margin and the largest boid the Scale range allows, measured from the mesh pivot. A system without the `FlockSimulation` parameter logs an error and the flock is not drawn.
+The flock component sets every user parameter before the system activates and replaces the system's fixed bounds with the area grown by the containment margin and the largest boid the Scale range allows, measured from the mesh pivot. The config's Appearance settings also replace the copy's own shadow, decal, custom depth and translucency sort overrides. A system without the `FlockSimulation` parameter logs an error and the flock is not drawn.
 
 ## Blueprint and C++ API
 
